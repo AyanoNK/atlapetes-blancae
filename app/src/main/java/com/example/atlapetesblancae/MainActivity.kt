@@ -22,8 +22,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import android.net.Uri
+import java.io.FileInputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.lang.Object
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +53,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnTakeRecording.setOnClickListener {
             takePhoto()
+        }
+        binding.btnTesting.setOnClickListener {
+            loadTorchModule("image.jpg")
         }
     }
 
@@ -128,6 +133,13 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun loadTorchModule(fileName: String) {
+        val path = this.filesDir.absolutePath
+        println(path.toString())
+        // TODO: add storage permission
+
     }
 
     override fun onDestroy() {

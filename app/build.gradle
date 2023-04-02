@@ -55,8 +55,14 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // camera
+    implementation 'androidx.camera:camera-core:1.2.2'
     implementation 'androidx.camera:camera-camera2:1.2.2'
     implementation 'androidx.camera:camera-lifecycle:1.2.2'
+    implementation 'androidx.camera:camera-video:1.2.2'
     implementation 'androidx.camera:camera-view:1.2.2'
+    implementation 'androidx.camera:camera-extensions:1.2.2'
 
+    // pytorch
+    implementation 'org.pytorch:pytorch_android_lite:1.10.0'
+    implementation 'org.pytorch:pytorch_android_torchvision_lite:1.10.0'
 }
