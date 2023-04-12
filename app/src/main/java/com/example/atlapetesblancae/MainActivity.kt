@@ -68,6 +68,8 @@ class MainActivity : AppCompatActivity() {
             captureVideo()
         }
 
+        cameraExecutor = Executors.newSingleThreadExecutor()
+
 
     }
 
