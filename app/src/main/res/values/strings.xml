@@ -1,6 +1,8 @@
 <resources>
-    <string name="app_name">AtlapetesBlancae</string>
-    <string name="title_home">Home</string>
+    <string name="app_name">A.Blancae</string>
+    <string name="title_home">title_home</string>
+    <string name="start_capture">Empezar a grabar</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="stop_capture">Stop Capture</string>
 </resources>

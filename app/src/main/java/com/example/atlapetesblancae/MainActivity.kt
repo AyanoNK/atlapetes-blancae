@@ -1,15 +1,13 @@
 package com.example.atlapetesblancae
 
+import android.Manifest
+import android.content.ContentValues
 import android.os.Bundle
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.example.atlapetesblancae.databinding.ActivityMainBinding
 import android.content.pm.PackageManager
+import android.icu.text.AlphabeticIndex.Record
 import androidx.core.content.ContextCompat
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
@@ -22,41 +20,55 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import android.net.Uri
-import java.io.FileInputStream
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
+import androidx.camera.video.MediaStoreOutputOptions
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
+import androidx.core.content.PermissionChecker
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.lang.Object
 
+typealias LumaListener = (luma: Double) -> Unit
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
     private var imageCapture: ImageCapture? = null
+    private var videoCapture: VideoCapture<Recorder>? = null
+
+    private var recording: Recording? = null
+
+
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        outputDirectory = getOutputDirectory()
-        cameraExecutor = Executors.newSingleThreadExecutor()
-
+        // request camera permissions
         if (allPermissionsGranted()) {
             startCamera()
-        } else {
-            ActivityCompat.requestPermissions(
-                this, Constants.REQUIRED_PERMISSIONS, Constants.REQUEST_CODE_PERMISSIONS
-            )
-        }
+        } else ActivityCompat.requestPermissions(
+            this, Constants.REQUIRED_PERMISSIONS, Constants.REQUEST_CODE_PERMISSIONS
+        )
 
         binding.btnTakeRecording.setOnClickListener {
-            takePhoto()
+            captureVideo()
         }
-        binding.btnTesting.setOnClickListener {
-            loadTorchModule("image.jpg")
-        }
+
+
     }
 
     private fun getOutputDirectory(): File {
@@ -64,6 +76,80 @@ class MainActivity : AppCompatActivity() {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
         return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
+    }
+
+
+    private fun captureVideo() {
+        val videoCapture = videoCapture ?: return
+
+        binding.btnTakeRecording.isEnabled = false
+
+        var curRecording = recording
+        if (curRecording != null) {
+            curRecording.stop()
+            recording = null
+            return
+        }
+
+        val name = SimpleDateFormat(
+            Constants.FILE_NAME_FORMAT, Locale.US
+        ).format(System.currentTimeMillis())
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES
+            ) // or Movies/CameraX-Video
+        }
+
+        val mediaStoreOutputOptions = MediaStoreOutputOptions.Builder(
+            contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        ).setContentValues(contentValues).build()
+
+        recording = videoCapture.output.prepareRecording(
+                this, mediaStoreOutputOptions,
+            ).apply {
+                if (PermissionChecker.checkSelfPermission(
+                        this@MainActivity, Manifest.permission.RECORD_AUDIO
+                    ) == PermissionChecker.PERMISSION_GRANTED
+                ) {
+                    withAudioEnabled()
+                }
+            }.start(ContextCompat.getMainExecutor(this)) { recordEvent ->
+                when (recordEvent) {
+                    is VideoRecordEvent.Start -> {
+                        binding.btnTakeRecording.apply {
+                            text = "Parar"
+                            isEnabled = true
+                        }
+                        // Schedule a stop recording task after 10 seconds
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            curRecording?.stop()
+                            curRecording = null
+                        }, 10000L)
+
+                    }
+                    is VideoRecordEvent.Finalize -> {
+                        if (!recordEvent.hasError()) {
+                            val msg = "Video saved" + "${recordEvent.outputResults.outputUri}"
+                            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+                            Log.d(Constants.TAG, msg)
+                        } else {
+                            recording?.close()
+                            recording = null
+                            Log.e(
+                                Constants.TAG, "Video recording failed: " + "${recordEvent.error}"
+                            )
+                        }
+                        binding.btnTakeRecording.apply {
+                            text = getString(R.string.start_capture)
+                            isEnabled = true
+                        }
+                    }
+                }
+            }
+
+
     }
 
     private fun takePhoto() {
@@ -96,19 +182,23 @@ class MainActivity : AppCompatActivity() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build().also { mPreview ->
-                mPreview.setSurfaceProvider(binding.viewFinder.surfaceProvider)
+
+            // preview
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
             }
-            imageCapture = ImageCapture.Builder().build()
-            val cameraeSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val recorder =
+                Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.HIGHEST)).build()
+            videoCapture = VideoCapture.withOutput(recorder)
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
-                    this, cameraeSelector, preview, imageCapture
+                    this, cameraSelector, preview, videoCapture
                 )
 
             } catch (e: Exception) {
-                Log.d(Constants.TAG, "startCamera Fail", e)
+                Log.d(Constants.TAG, "Use case binding failed", e)
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -139,11 +229,57 @@ class MainActivity : AppCompatActivity() {
         val path = this.filesDir.absolutePath
         println(path.toString())
         // TODO: add storage permission
-
     }
+
+    // TODO: analyze this function
+    // https://github.com/pytorch/android-demo-app/blob/8e2700a96dd4126f7aaae0f62d52d44bac9ed722/QuestionAnswering/app/src/main/java/org/pytorch/demo/questionanswering/MainActivity.kt#L4
+//    private fun answer(question: String, text: String): String? {
+//        if (mModule == null) {
+//            mModule = LiteModuleLoader.load(this.assetFilePath(this, "qa360_quantized.ptl"))
+//        }
+//
+//        try {
+//            val tokenIds = tokenizer(question, text)
+//            val inTensorBuffer = Tensor.allocateLongBuffer(MODEL_INPUT_LENGTH)
+//            for (n in tokenIds) inTensorBuffer.put(n.toLong())
+//            for (i in 0 until MODEL_INPUT_LENGTH - tokenIds.size) mTokenIdMap!![PAD]?.let { inTensorBuffer.put(it) }
+//
+//            val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, MODEL_INPUT_LENGTH.toLong()))
+//            val outTensors = mModule!!.forward(IValue.from(inTensor)).toDictStringKey()
+//            val startTensor = outTensors[START_LOGITS]!!.toTensor()
+//            val endTensor = outTensors[END_LOGITS]!!.toTensor()
+//
+//            val starts = startTensor.dataAsFloatArray
+//            val ends = endTensor.dataAsFloatArray
+//            val answerTokens: MutableList<String?> = ArrayList()
+//            val start = argmax(starts)
+//            val end = argmax(ends)
+//            for (i in start until end + 1) answerTokens.add(mIdTokenMap!![tokenIds[i]])
+//
+//            return java.lang.String.join(" ", answerTokens).replace(" ##".toRegex(), "").replace("\\s+(?=\\p{Punct})".toRegex(), "")
+//        } catch (e: QAException) {
+//            runOnUiThread { mTextViewAnswer!!.text = e.message }
+//        }
+//        return null
+//    }
+
+    // TODO: analyze this function
+//    private fun argmax(array: FloatArray): Int {
+//        var maxIdx = 0
+//        var maxVal: Double = -MAX_VALUE
+//        for (j in array.indices) {
+//            if (array[j] > maxVal) {
+//                maxVal = array[j].toDouble()
+//                maxIdx = j
+//            }
+//        }
+//        return maxIdx
+//    }
 
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
+
+
 }
