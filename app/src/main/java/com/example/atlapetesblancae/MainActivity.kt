@@ -62,6 +62,13 @@ class MainActivity : AppCompatActivity() {
         } else ActivityCompat.requestPermissions(
             this, Constants.REQUIRED_PERMISSIONS, Constants.REQUEST_CODE_PERMISSIONS
         )
+
+        if (!allPermissionsGranted()) {
+            binding.btnTakeRecording.apply {
+                isEnabled = false
+                text = "Revisa los permisos de la cámara y micrófono"
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(
