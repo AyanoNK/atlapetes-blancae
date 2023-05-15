@@ -69,6 +69,12 @@ class MainActivity : AppCompatActivity() {
                 text = "Revisa los permisos de la cámara y micrófono"
             }
         }
+
+        binding.btnTakeRecording.setOnClickListener {
+            val intent = Intent(this, RecordVideoActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
     override fun onRequestPermissionsResult(

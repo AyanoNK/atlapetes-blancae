@@ -47,16 +47,9 @@ import java.util.concurrent.Executors
 class RecordVideoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRecordVideoBinding
-
-    private var imageCapture: ImageCapture? = null
     private var videoCapture: VideoCapture<Recorder>? = null
-
     private var recording: Recording? = null
-
-
-    private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,16 +63,10 @@ class RecordVideoActivity : AppCompatActivity() {
         } else ActivityCompat.requestPermissions(
             this, Constants.REQUIRED_PERMISSIONS, Constants.REQUEST_CODE_PERMISSIONS
         )
-
         binding.btnTakeRecording.setOnClickListener {
             captureVideo()
         }
-
-
-
         cameraExecutor = Executors.newSingleThreadExecutor()
-
-
     }
 
     private fun captureVideo() {
@@ -130,7 +117,6 @@ class RecordVideoActivity : AppCompatActivity() {
                         curRecording?.stop()
                         curRecording = null
                     }, 10000L)
-
                 }
 
                 is VideoRecordEvent.Finalize -> {
@@ -155,41 +141,12 @@ class RecordVideoActivity : AppCompatActivity() {
                 }
             }
         }
-
-
-    }
-
-    private fun takePhoto() {
-        val imageCapture = imageCapture ?: return
-        val photoFile = File(
-            outputDirectory, SimpleDateFormat(
-                Constants.FILE_NAME_FORMAT, Locale.getDefault()
-            ).format(System.currentTimeMillis()) + ".jpg"
-        )
-
-        val outputOption = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        imageCapture.takePicture(outputOption,
-            ContextCompat.getMainExecutor(this),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    val savedUri = Uri.fromFile(photoFile)
-                    val msg = "Photo saved"
-                    Toast.makeText(this@RecordVideoActivity, "$msg $savedUri", Toast.LENGTH_LONG).show()
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Log.e(Constants.TAG, "onError: ${exception.message}", exception)
-                }
-
-            })
-
     }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
 
             // preview
             val preview = Preview.Builder().build().also {
@@ -224,7 +181,6 @@ class RecordVideoActivity : AppCompatActivity() {
                     scaleGestureDetector.onTouchEvent(event)
                     return@setOnTouchListener true
                 }
-
             } catch (e: Exception) {
                 Log.d(Constants.TAG, "Use case binding failed", e)
             }
@@ -244,7 +200,6 @@ class RecordVideoActivity : AppCompatActivity() {
             ).show()
             finish()
         }
-//
     }
 
     private fun allPermissionsGranted() = Constants.REQUIRED_PERMISSIONS.all {
@@ -252,98 +207,6 @@ class RecordVideoActivity : AppCompatActivity() {
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
     }
-
-//    private fun loadRawResVideoCalledTest() {
-//        val video = this.resources.openRawResource(R.raw.test)
-//        println(video.javaClass.kotlin)
-//
-//        val inTensorBuffer = Tensor.allocateLongBuffer(MODEL_INPUT_LENGTH)
-//
-//        val mModule = LiteModuleLoader.load(this.assetFilePath(this, "model.ptl"))
-//
-//        val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, MODEL_INPUT_LENGTH.toLong()))
-//
-//
-//    }
-
-    private fun assetFilePath(asset: String): String {
-        val file = File(baseContext.filesDir, asset)
-
-        try {
-            val inpStream: InputStream = baseContext.assets.open(asset)
-            try {
-                val outStream = FileOutputStream(file, false)
-                val buffer = ByteArray(4 * 1024)
-                var read: Int
-
-                while (true) {
-                    read = inpStream.read(buffer)
-                    if (read == -1) {
-                        break
-                    }
-                    outStream.write(buffer, 0, read)
-                }
-                outStream.flush()
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-            }
-            return file.absolutePath
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return ""
-    }
-
-    private fun loadTorchModule(fileName: String) {
-        val path = this.filesDir.absolutePath
-        println(path.toString())
-        // TODO: add storage permission
-    }
-
-    // TODO: analyze this function
-    // https://github.com/pytorch/android-demo-app/blob/8e2700a96dd4126f7aaae0f62d52d44bac9ed722/QuestionAnswering/app/src/main/java/org/pytorch/demo/questionanswering/MainActivity.kt#L4
-//    private fun answer(question: String, text: String): String? {
-//        if (mModule == null) {
-//            mModule = LiteModuleLoader.load(this.assetFilePath(this, "qa360_quantized.ptl"))
-//        }
-//
-//        try {
-//            val tokenIds = tokenizer(question, text)
-//            val inTensorBuffer = Tensor.allocateLongBuffer(MODEL_INPUT_LENGTH)
-//            for (n in tokenIds) inTensorBuffer.put(n.toLong())
-//            for (i in 0 until MODEL_INPUT_LENGTH - tokenIds.size) mTokenIdMap!![PAD]?.let { inTensorBuffer.put(it) }
-//
-//            val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, MODEL_INPUT_LENGTH.toLong()))
-//            val outTensors = mModule!!.forward(IValue.from(inTensor)).toDictStringKey()
-//            val startTensor = outTensors[START_LOGITS]!!.toTensor()
-//            val endTensor = outTensors[END_LOGITS]!!.toTensor()
-//
-//            val starts = startTensor.dataAsFloatArray
-//            val ends = endTensor.dataAsFloatArray
-//            val answerTokens: MutableList<String?> = ArrayList()
-//            val start = argmax(starts)
-//            val end = argmax(ends)
-//            for (i in start until end + 1) answerTokens.add(mIdTokenMap!![tokenIds[i]])
-//
-//            return java.lang.String.join(" ", answerTokens).replace(" ##".toRegex(), "").replace("\\s+(?=\\p{Punct})".toRegex(), "")
-//        } catch (e: QAException) {
-//            runOnUiThread { mTextViewAnswer!!.text = e.message }
-//        }
-//        return null
-//    }
-
-    // TODO: analyze this function
-//    private fun argmax(array: FloatArray): Int {
-//        var maxIdx = 0
-//        var maxVal: Double = -MAX_VALUE
-//        for (j in array.indices) {
-//            if (array[j] > maxVal) {
-//                maxVal = array[j].toDouble()
-//                maxIdx = j
-//            }
-//        }
-//        return maxIdx
-//    }
 
     override fun onDestroy() {
         super.onDestroy()
