@@ -14,6 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
+        android:background="@color/green_500"
         android:text="@string/start_capture"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,8 +34,8 @@
 
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="336dp"
-        android:layout_height="57dp"
+        android:layout_width="334dp"
+        android:layout_height="85dp"
         android:layout_marginBottom="16dp"
         android:gravity="center"
         android:orientation="horizontal"
@@ -44,24 +45,24 @@
 
         <ImageView
             android:id="@+id/imageView4"
-            android:layout_width="129dp"
-            android:layout_height="match_parent"
+            android:layout_width="57dp"
+            android:layout_height="53dp"
             android:contentDescription="@string/neotropical_innovation"
             app:srcCompat="@drawable/neotropical_innovation" />
 
         <ImageView
-            android:id="@+id/imageView7"
-            android:layout_width="63dp"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/humboldt"
-            app:srcCompat="@drawable/humboldt" />
-
-        <ImageView
             android:id="@+id/imageView2"
-            android:layout_width="118dp"
-            android:layout_height="37dp"
+            android:layout_width="195dp"
+            android:layout_height="52dp"
             android:contentDescription="@string/sistemic"
             app:srcCompat="@drawable/sistemic" />
+
+        <ImageView
+            android:id="@+id/imageView7"
+            android:layout_width="51dp"
+            android:layout_height="53dp"
+            android:contentDescription="@string/humboldt"
+            app:srcCompat="@drawable/humboldt" />
 
     </LinearLayout>
 
@@ -71,8 +72,9 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/lato"
         android:text="@string/title_home"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display2"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:textColor="@color/black"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/startQuestionText" />
@@ -96,6 +98,7 @@
         android:layout_height="wrap_content"
         android:text="@string/scientific_name"
         android:fontFamily="@font/lato"
+        android:textColor="@color/gray_700"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/titleText" />
