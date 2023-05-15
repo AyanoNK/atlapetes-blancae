@@ -4,6 +4,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('C:\\Users\\Ayano\\Downloads\\keystore\\keystore2.jks')
+            storePassword 'blancae1'
+            keyAlias 'key0'
+            keyPassword 'blancae1'
+        }
+    }
     namespace 'com.example.atlapetesblancae'
     compileSdk 33
 
