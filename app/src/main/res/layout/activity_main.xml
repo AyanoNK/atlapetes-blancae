@@ -6,9 +6,8 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#A6FFFFFF"
+    android:background="@drawable/gradient_background"
     tools:context=".MainActivity">
-    >
 
     <Button
         android:id="@+id/btnTakeRecording"
@@ -16,30 +15,103 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:text="@string/start_capture"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/btnTesting"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Test"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/viewFinder" />
+        app:layout_constraintTop_toBottomOf="@+id/endQuestionText" />
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/viewFinder"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ImageView
+        android:id="@+id/mainPicture"
+        android:layout_width="341dp"
+        android:layout_height="224dp"
+        android:layout_marginTop="32dp"
+        android:contentDescription="@string/title_home"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0">
+        app:srcCompat="@drawable/full" />
 
-    </androidx.camera.view.PreviewView>
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="336dp"
+        android:layout_height="57dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="129dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/neotropical_innovation"
+            app:srcCompat="@drawable/neotropical_innovation" />
+
+        <ImageView
+            android:id="@+id/imageView7"
+            android:layout_width="63dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/humboldt"
+            app:srcCompat="@drawable/humboldt" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="118dp"
+            android:layout_height="37dp"
+            android:contentDescription="@string/sistemic"
+            app:srcCompat="@drawable/sistemic" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/lato"
+        android:text="@string/title_home"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display2"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/startQuestionText" />
+
+    <TextView
+        android:id="@+id/startQuestionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:fontFamily="@font/lato"
+        android:text="@string/you_think_you_saw"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mainPicture" />
+
+    <TextView
+        android:id="@+id/titleSurnameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/scientific_name"
+        android:fontFamily="@font/lato"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleText" />
+
+    <TextView
+        android:id="@+id/endQuestionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/but_not_sure"
+        android:fontFamily="@font/lato"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleSurnameText" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

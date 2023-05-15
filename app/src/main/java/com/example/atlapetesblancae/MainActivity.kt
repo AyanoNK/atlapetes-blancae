@@ -47,15 +47,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private var imageCapture: ImageCapture? = null
-    private var videoCapture: VideoCapture<Recorder>? = null
-
-    private var recording: Recording? = null
-
-
-    private lateinit var outputDirectory: File
-    private lateinit var cameraExecutor: ExecutorService
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,179 +56,18 @@ class MainActivity : AppCompatActivity() {
 
         // request camera permissions
         if (allPermissionsGranted()) {
-            startCamera()
+            Toast.makeText(
+                this, "Permisos permitidos.", Toast.LENGTH_SHORT
+            ).show()
         } else ActivityCompat.requestPermissions(
             this, Constants.REQUIRED_PERMISSIONS, Constants.REQUEST_CODE_PERMISSIONS
         )
-
-        binding.btnTakeRecording.setOnClickListener {
-            captureVideo()
-        }
-
-        binding.btnTesting.setOnClickListener {
-            loadRawResVideoCalledTest()
-        }
-
-        cameraExecutor = Executors.newSingleThreadExecutor()
-
-
-
-    }
-
-    private fun captureVideo() {
-        val videoCapture = videoCapture ?: return
-
-        binding.btnTakeRecording.isEnabled = false
-
-        var curRecording = recording
-        if (curRecording != null) {
-            curRecording.stop()
-            recording = null
-            return
-        }
-
-        val name = SimpleDateFormat(
-            Constants.FILE_NAME_FORMAT, Locale.US
-        ).format(System.currentTimeMillis())
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-            put(
-                MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES
-            ) // or Movies/CameraX-Video
-        }
-
-        val mediaStoreOutputOptions = MediaStoreOutputOptions.Builder(
-            contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        ).setContentValues(contentValues).build()
-
-        recording = videoCapture.output.prepareRecording(
-            this, mediaStoreOutputOptions,
-        ).apply {
-            if (PermissionChecker.checkSelfPermission(
-                    this@MainActivity, Manifest.permission.RECORD_AUDIO
-                ) == PermissionChecker.PERMISSION_GRANTED
-            ) {
-                withAudioEnabled()
-            }
-        }.start(ContextCompat.getMainExecutor(this)) { recordEvent ->
-            when (recordEvent) {
-                is VideoRecordEvent.Start -> {
-                    binding.btnTakeRecording.apply {
-                        text = "Parar"
-                        isEnabled = true
-                    }
-                    // Schedule a stop recording task after 10 seconds
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        curRecording?.stop()
-                        curRecording = null
-                    }, 10000L)
-
-                }
-                is VideoRecordEvent.Finalize -> {
-                    if (!recordEvent.hasError()) {
-                        val msg = "Video saved" + "${recordEvent.outputResults.outputUri}"
-                        Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                        Log.d(Constants.TAG, msg)
-                        val intent = Intent(this, ReviewVideoActivity::class.java)
-                        intent.putExtra("videoUri", recordEvent.outputResults.outputUri)
-                        startActivity(intent)
-                    } else {
-                        recording?.close()
-                        recording = null
-                        Log.e(
-                            Constants.TAG, "Video recording failed: " + "${recordEvent.error}"
-                        )
-                    }
-                    binding.btnTakeRecording.apply {
-                        text = getString(R.string.start_capture)
-                        isEnabled = true
-                    }
-                }
-            }
-        }
-
-
-    }
-
-    private fun takePhoto() {
-        val imageCapture = imageCapture ?: return
-        val photoFile = File(
-            outputDirectory, SimpleDateFormat(
-                Constants.FILE_NAME_FORMAT, Locale.getDefault()
-            ).format(System.currentTimeMillis()) + ".jpg"
-        )
-
-        val outputOption = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        imageCapture.takePicture(outputOption,
-            ContextCompat.getMainExecutor(this),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    val savedUri = Uri.fromFile(photoFile)
-                    val msg = "Photo saved"
-                    Toast.makeText(this@MainActivity, "$msg $savedUri", Toast.LENGTH_LONG).show()
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Log.e(Constants.TAG, "onError: ${exception.message}", exception)
-                }
-
-            })
-
-    }
-
-    private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-
-            // preview
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
-            }
-            val recorder =
-                Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.HIGHEST)).build()
-            videoCapture = VideoCapture.withOutput(recorder)
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-            try {
-                cameraProvider.unbindAll()
-                val camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, videoCapture
-                )
-                val cameraInfo = camera.cameraInfo
-                val cameraControl = camera.cameraControl
-                val listener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                    override fun onScale(detector: ScaleGestureDetector): Boolean {
-                        // get the camera's current zoom ratio
-                        val currentZoomRatio = cameraInfo.zoomState.value?.zoomRatio ?: 0F
-                        // get the pinch gesture's scaling factor
-                        val delta = detector.scaleFactor
-                        // update the camera's zoom ratio. This is an asynchronous operation that returns
-                        // a ListenableFuture, allowing you to listen to when the operation completes.
-                        cameraControl.setZoomRatio(currentZoomRatio * delta)
-                        return true
-                    }
-                }
-                val scaleGestureDetector = ScaleGestureDetector(this, listener)
-                //attach pinch gesture listener to the viewfinder
-                binding.viewFinder.setOnTouchListener { _, event ->
-                    scaleGestureDetector.onTouchEvent(event)
-                    return@setOnTouchListener true
-                }
-
-            } catch (e: Exception) {
-                Log.d(Constants.TAG, "Use case binding failed", e)
-            }
-        }, ContextCompat.getMainExecutor(this))
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         if (requestCode == Constants.REQUEST_CODE_PERMISSIONS) {
-            startCamera()
-            // TODO: check if this is an anti pattern
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         } else {
             Toast.makeText(
@@ -245,7 +75,6 @@ class MainActivity : AppCompatActivity() {
             ).show()
             finish()
         }
-//
     }
 
     private fun allPermissionsGranted() = Constants.REQUIRED_PERMISSIONS.all {
@@ -253,103 +82,4 @@ class MainActivity : AppCompatActivity() {
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
     }
-
-    private fun loadRawResVideoCalledTest() {
-        val video = this.resources.openRawResource(R.raw.test)
-        println(video.javaClass.kotlin)
-
-        val inTensorBuffer = Tensor.allocateLongBuffer(MODEL_INPUT_LENGTH)
-
-        val mModule = LiteModuleLoader.load(this.assetFilePath(this, "model.ptl"))
-
-        val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, MODEL_INPUT_LENGTH.toLong()))
-
-
-    }
-
-    private fun assetFilePath(asset: String): String {
-        val file = File(baseContext.filesDir, asset)
-
-        try {
-            val inpStream: InputStream = baseContext.assets.open(asset)
-            try {
-                val outStream = FileOutputStream(file, false)
-                val buffer = ByteArray(4 * 1024)
-                var read: Int
-
-                while (true) {
-                    read = inpStream.read(buffer)
-                    if (read == -1) {
-                        break
-                    }
-                    outStream.write(buffer, 0, read)
-                }
-                outStream.flush()
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-            }
-            return file.absolutePath
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return ""
-    }
-
-    private fun loadTorchModule(fileName: String) {
-        val path = this.filesDir.absolutePath
-        println(path.toString())
-        // TODO: add storage permission
-    }
-
-    // TODO: analyze this function
-    // https://github.com/pytorch/android-demo-app/blob/8e2700a96dd4126f7aaae0f62d52d44bac9ed722/QuestionAnswering/app/src/main/java/org/pytorch/demo/questionanswering/MainActivity.kt#L4
-//    private fun answer(question: String, text: String): String? {
-//        if (mModule == null) {
-//            mModule = LiteModuleLoader.load(this.assetFilePath(this, "qa360_quantized.ptl"))
-//        }
-//
-//        try {
-//            val tokenIds = tokenizer(question, text)
-//            val inTensorBuffer = Tensor.allocateLongBuffer(MODEL_INPUT_LENGTH)
-//            for (n in tokenIds) inTensorBuffer.put(n.toLong())
-//            for (i in 0 until MODEL_INPUT_LENGTH - tokenIds.size) mTokenIdMap!![PAD]?.let { inTensorBuffer.put(it) }
-//
-//            val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, MODEL_INPUT_LENGTH.toLong()))
-//            val outTensors = mModule!!.forward(IValue.from(inTensor)).toDictStringKey()
-//            val startTensor = outTensors[START_LOGITS]!!.toTensor()
-//            val endTensor = outTensors[END_LOGITS]!!.toTensor()
-//
-//            val starts = startTensor.dataAsFloatArray
-//            val ends = endTensor.dataAsFloatArray
-//            val answerTokens: MutableList<String?> = ArrayList()
-//            val start = argmax(starts)
-//            val end = argmax(ends)
-//            for (i in start until end + 1) answerTokens.add(mIdTokenMap!![tokenIds[i]])
-//
-//            return java.lang.String.join(" ", answerTokens).replace(" ##".toRegex(), "").replace("\\s+(?=\\p{Punct})".toRegex(), "")
-//        } catch (e: QAException) {
-//            runOnUiThread { mTextViewAnswer!!.text = e.message }
-//        }
-//        return null
-//    }
-
-    // TODO: analyze this function
-//    private fun argmax(array: FloatArray): Int {
-//        var maxIdx = 0
-//        var maxVal: Double = -MAX_VALUE
-//        for (j in array.indices) {
-//            if (array[j] > maxVal) {
-//                maxVal = array[j].toDouble()
-//                maxIdx = j
-//            }
-//        }
-//        return maxIdx
-//    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
-    }
-
-
 }

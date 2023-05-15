@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.atlapetesblancae.databinding.ActivityMainBinding
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.icu.text.AlphabeticIndex.Record
 import androidx.core.content.ContextCompat
 import android.widget.Toast
@@ -34,12 +35,18 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.PermissionChecker
+import com.example.atlapetesblancae.databinding.ActivityRecordVideoBinding
+import org.pytorch.LiteModuleLoader
+import org.pytorch.Module
+import org.pytorch.Tensor
+import java.io.FileOutputStream
+import java.io.InputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class VideoRecordActivity : AppCompatActivity() {
+class RecordVideoActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityRecordVideoBinding
 
     private var imageCapture: ImageCapture? = null
     private var videoCapture: VideoCapture<Recorder>? = null
@@ -54,7 +61,7 @@ class VideoRecordActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityRecordVideoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // request camera permissions
@@ -68,19 +75,12 @@ class VideoRecordActivity : AppCompatActivity() {
             captureVideo()
         }
 
+
+
         cameraExecutor = Executors.newSingleThreadExecutor()
 
 
-
     }
-
-    private fun getOutputDirectory(): File {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
-        }
-        return if (mediaDir != null && mediaDir.exists()) mediaDir else filesDir
-    }
-
 
     private fun captureVideo() {
         val videoCapture = videoCapture ?: return
@@ -113,7 +113,7 @@ class VideoRecordActivity : AppCompatActivity() {
             this, mediaStoreOutputOptions,
         ).apply {
             if (PermissionChecker.checkSelfPermission(
-                    this@VideoRecordActivity, Manifest.permission.RECORD_AUDIO
+                    this@RecordVideoActivity, Manifest.permission.RECORD_AUDIO
                 ) == PermissionChecker.PERMISSION_GRANTED
             ) {
                 withAudioEnabled()
@@ -132,6 +132,7 @@ class VideoRecordActivity : AppCompatActivity() {
                     }, 10000L)
 
                 }
+
                 is VideoRecordEvent.Finalize -> {
                     if (!recordEvent.hasError()) {
                         val msg = "Video saved" + "${recordEvent.outputResults.outputUri}"
@@ -173,7 +174,7 @@ class VideoRecordActivity : AppCompatActivity() {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                     val savedUri = Uri.fromFile(photoFile)
                     val msg = "Photo saved"
-                    Toast.makeText(this@VideoRecordActivity, "$msg $savedUri", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@RecordVideoActivity, "$msg $savedUri", Toast.LENGTH_LONG).show()
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -250,6 +251,47 @@ class VideoRecordActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+//    private fun loadRawResVideoCalledTest() {
+//        val video = this.resources.openRawResource(R.raw.test)
+//        println(video.javaClass.kotlin)
+//
+//        val inTensorBuffer = Tensor.allocateLongBuffer(MODEL_INPUT_LENGTH)
+//
+//        val mModule = LiteModuleLoader.load(this.assetFilePath(this, "model.ptl"))
+//
+//        val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, MODEL_INPUT_LENGTH.toLong()))
+//
+//
+//    }
+
+    private fun assetFilePath(asset: String): String {
+        val file = File(baseContext.filesDir, asset)
+
+        try {
+            val inpStream: InputStream = baseContext.assets.open(asset)
+            try {
+                val outStream = FileOutputStream(file, false)
+                val buffer = ByteArray(4 * 1024)
+                var read: Int
+
+                while (true) {
+                    read = inpStream.read(buffer)
+                    if (read == -1) {
+                        break
+                    }
+                    outStream.write(buffer, 0, read)
+                }
+                outStream.flush()
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+            return file.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return ""
     }
 
     private fun loadTorchModule(fileName: String) {
