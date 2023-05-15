@@ -14,9 +14,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:background="@color/green_500"
+        android:background="@color/green_700"
         android:text="@string/start_capture"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintBottom_toTopOf="@+id/imageLinearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/endQuestionText" />
@@ -33,7 +33,7 @@
         app:srcCompat="@drawable/full" />
 
     <LinearLayout
-        android:id="@+id/linearLayout"
+        android:id="@+id/imageLinearLayout"
         android:layout_width="334dp"
         android:layout_height="85dp"
         android:layout_marginBottom="16dp"
@@ -44,21 +44,21 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
-            android:id="@+id/imageView4"
+            android:id="@+id/NeotropicalInnovationImage"
             android:layout_width="57dp"
             android:layout_height="53dp"
             android:contentDescription="@string/neotropical_innovation"
             app:srcCompat="@drawable/neotropical_innovation" />
 
         <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/SistemicImage"
             android:layout_width="195dp"
             android:layout_height="52dp"
             android:contentDescription="@string/sistemic"
             app:srcCompat="@drawable/sistemic" />
 
         <ImageView
-            android:id="@+id/imageView7"
+            android:id="@+id/HumboldtImage"
             android:layout_width="51dp"
             android:layout_height="53dp"
             android:contentDescription="@string/humboldt"
