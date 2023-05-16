@@ -125,7 +125,7 @@ class RecordVideoActivity : AppCompatActivity() {
                         Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                         Log.d(Constants.TAG, msg)
                         val intent = Intent(this, ReviewVideoActivity::class.java)
-                        intent.putExtra("videoUri", recordEvent.outputResults.outputUri)
+                        intent.putExtra("videoUri", recordEvent.outputResults.outputUri.toString())
                         startActivity(intent)
                     } else {
                         recording?.close()

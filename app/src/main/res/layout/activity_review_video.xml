@@ -4,30 +4,69 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/review_gradient_background"
     tools:context=".ReviewVideoActivity">
 
     <TextView
-        android:id="@+id/analyzingText"
+        android:id="@+id/findingYourText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:fontFamily="@font/lato"
-        android:text="@string/analyzing"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:fontFamily="@font/latoregular"
+        android:text="@string/finding_your"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@color/black"
-        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <VideoView
+        android:id="@+id/recordedVideoView"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scientificNameText" />
+
+    <ImageView
+        android:id="@+id/blancaeSideImage"
+        android:layout_width="93dp"
+        android:layout_height="111dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/blancae_side"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/findingYourText"
+        app:srcCompat="@drawable/blancae_side" />
+
+    <TextView
+        android:id="@+id/scientificNameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/scientific_name"
+        android:fontFamily="@font/latoregular"
+        android:textColor="@color/gray_700"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/blancaeSideImage" />
+
     <ProgressBar
-        android:id="@+id/analyzeVideoProgressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="131dp"
-        android:layout_height="97dp"
+        android:id="@+id/analyzingProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="250dp"
+        android:layout_height="75dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="1"
+        android:progressBackgroundTint="@color/blue_300"
+        android:progressTint="@color/green_700"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/recordedVideoView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

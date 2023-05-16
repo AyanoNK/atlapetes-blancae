@@ -10,3 +10,8 @@ object Constants {
         Manifest.permission.RECORD_AUDIO,
     )
 }
+
+object Classifications {
+    const val BLANCAE = 0
+    const val NOT_BLANCAE = -1
+}

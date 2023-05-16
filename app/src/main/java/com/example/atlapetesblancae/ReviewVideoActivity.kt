@@ -1,54 +1,25 @@
 package com.example.atlapetesblancae
 
-import android.Manifest
-import android.content.ContentValues
-import android.content.Intent
+import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import com.example.atlapetesblancae.databinding.ActivityMainBinding
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.icu.text.AlphabeticIndex.Record
-import androidx.core.content.ContextCompat
-import android.widget.Toast
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.core.ImageCapture
-import android.util.Log
-import androidx.camera.core.ImageCaptureException
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import android.net.Uri
-import android.os.Environment
-import android.os.Handler
-import android.os.Looper
-import android.provider.MediaStore
-import android.view.ScaleGestureDetector
-import androidx.camera.video.MediaStoreOutputOptions
-import androidx.camera.video.Quality
-import androidx.camera.video.QualitySelector
-import androidx.camera.video.Recorder
-import androidx.camera.video.Recording
-import androidx.camera.video.VideoCapture
-import androidx.camera.video.VideoRecordEvent
-import androidx.core.content.PermissionChecker
-import com.example.atlapetesblancae.databinding.ActivityRecordVideoBinding
 import com.example.atlapetesblancae.databinding.ActivityReviewVideoBinding
+import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.Module
 import org.pytorch.Tensor
+import org.pytorch.torchvision.TensorImageUtils
 import java.io.FileOutputStream
-import java.io.InputStream
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import kotlin.math.ceil
 
 class ReviewVideoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReviewVideoBinding
-
+    private var mModule: Module? = null
+    private var progressStatus: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,92 +27,97 @@ class ReviewVideoActivity : AppCompatActivity() {
         binding = ActivityReviewVideoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val videoUri: String? = intent.getStringExtra("videoUri")
+        println(videoUri)
 
+        if (videoUri != null) {
+            startVideoPreview(videoUri)
+        }
+        Thread(Runnable {
+            test()
+        }).start()
     }
 
-    private fun loadRawResVideoCalledTest() {
-        val video = this.resources.openRawResource(R.raw.test)
-        println(video.javaClass.kotlin)
-        val inTensorBuffer = Tensor.allocateLongBuffer(255)
-        val mModule = LiteModuleLoader.load(this.assetFilePath("model.ptl"))
-        val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, 255.toLong()))
+    private fun test() {
+        val stored1080pVideo = resources.openRawResource(R.raw.test2)
+        // model expects video to be loaded
+        val mModule = LiteModuleLoader.load(this.assetFilePath(this, "model.ptl"))
+        val retriever = MediaMetadataRetriever()
+
+        // prepare InputStream to be used in retriever.setDataSource
+        val tempFile = File.createTempFile("temp", "mp4")
+        tempFile.deleteOnExit()
+
+        stored1080pVideo.use { input ->
+            FileOutputStream(tempFile).use { output ->
+                input.copyTo(output)
+            }
+        }
+        retriever.setDataSource(tempFile.absolutePath)
+
+        val videoLength =
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+        val frameRate = 1000.toLong()
+        // create empty decimal array of variable size to store max values
+
+        val predictions = mutableListOf<Float>()
+        val frameNumber = videoLength / frameRate
+        binding.analyzingProgressBar.max = ceil(frameNumber.toDouble()).toInt()
+
+        for (i in 0 until videoLength step frameRate) {
+            println(i)
+            val bitmap = retriever.getFrameAtTime(i, MediaMetadataRetriever.OPTION_CLOSEST)
+            val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
+                bitmap,
+                TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
+                TensorImageUtils.TORCHVISION_NORM_STD_RGB
+            )
+            val outputTensor = mModule.forward(IValue.from(inputTensor)).toTuple()
+            for (tensor in outputTensor) {
+                val prediction = getMostAccuratePrediction(tensor.toTensor())
+                if (prediction != null) {
+                    predictions.add(prediction)
+                    progressStatus += 1
+                    binding.analyzingProgressBar.progress = progressStatus
+                }
+            }
+        }
+
+        for (i in predictions.indices) {
+            println("Prediction for frame $i: ${predictions[i]}")
+        }
     }
 
-    private fun assetFilePath(asset: String): String {
-        val file = File(baseContext.filesDir, asset)
-        try {
-            val inpStream: InputStream = baseContext.assets.open(asset)
-            try {
-                val outStream = FileOutputStream(file, false)
+    private fun assetFilePath(context: Context, assetName: String?): String? {
+        val file = File(context.filesDir, assetName)
+        if (file.exists() && file.length() > 0) {
+            return file.absolutePath
+        }
+        context.assets.open(assetName!!).use { `is` ->
+            FileOutputStream(file).use { os ->
                 val buffer = ByteArray(4 * 1024)
                 var read: Int
-
-                while (true) {
-                    read = inpStream.read(buffer)
-                    if (read == -1) {
-                        break
-                    }
-                    outStream.write(buffer, 0, read)
+                while (`is`.read(buffer).also { read = it } != -1) {
+                    os.write(buffer, 0, read)
                 }
-                outStream.flush()
-            } catch (ex: Exception) {
-                ex.printStackTrace()
+                os.flush()
             }
             return file.absolutePath
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
-        return ""
     }
 
-    private fun loadTorchModule(fileName: String) {
-        val path = this.filesDir.absolutePath
-        println(path.toString())
-        // TODO: add storage permission
+    private fun getMostAccuratePrediction(tensor: Tensor): Float? {
+        val tensorData = tensor.dataAsFloatArray
+        return tensorData.maxOrNull()
     }
 
-    // TODO: analyze this function
-    // https://github.com/pytorch/android-demo-app/blob/8e2700a96dd4126f7aaae0f62d52d44bac9ed722/QuestionAnswering/app/src/main/java/org/pytorch/demo/questionanswering/MainActivity.kt#L4
-//    private fun answer(question: String, text: String): String? {
-//        if (mModule == null) {
-//            mModule = LiteModuleLoader.load(this.assetFilePath(this, "qa360_quantized.ptl"))
-//        }
-//
-//        try {
-//            val tokenIds = tokenizer(question, text)
-//            val inTensorBuffer = Tensor.allocateLongBuffer(MODEL_INPUT_LENGTH)
-//            for (n in tokenIds) inTensorBuffer.put(n.toLong())
-//            for (i in 0 until MODEL_INPUT_LENGTH - tokenIds.size) mTokenIdMap!![PAD]?.let { inTensorBuffer.put(it) }
-//
-//            val inTensor = Tensor.fromBlob(inTensorBuffer, longArrayOf(1, MODEL_INPUT_LENGTH.toLong()))
-//            val outTensors = mModule!!.forward(IValue.from(inTensor)).toDictStringKey()
-//            val startTensor = outTensors[START_LOGITS]!!.toTensor()
-//            val endTensor = outTensors[END_LOGITS]!!.toTensor()
-//
-//            val starts = startTensor.dataAsFloatArray
-//            val ends = endTensor.dataAsFloatArray
-//            val answerTokens: MutableList<String?> = ArrayList()
-//            val start = argmax(starts)
-//            val end = argmax(ends)
-//            for (i in start until end + 1) answerTokens.add(mIdTokenMap!![tokenIds[i]])
-//
-//            return java.lang.String.join(" ", answerTokens).replace(" ##".toRegex(), "").replace("\\s+(?=\\p{Punct})".toRegex(), "")
-//        } catch (e: QAException) {
-//            runOnUiThread { mTextViewAnswer!!.text = e.message }
-//        }
-//        return null
-//    }
-
-    // TODO: analyze this function
-//    private fun argmax(array: FloatArray): Int {
-//        var maxIdx = 0
-//        var maxVal: Double = -MAX_VALUE
-//        for (j in array.indices) {
-//            if (array[j] > maxVal) {
-//                maxVal = array[j].toDouble()
-//                maxIdx = j
-//            }
-//        }
-//        return maxIdx
-//    }
+    private fun startVideoPreview(videoUri: String) {
+        println("I SHOULD NOT ARRIVE HERE")
+        binding.recordedVideoView.setVideoURI(Uri.parse(videoUri))
+        binding.recordedVideoView.start()
+        // loop video
+        binding.recordedVideoView.setOnCompletionListener {
+            binding.recordedVideoView.start()
+        }
+    }
 }
