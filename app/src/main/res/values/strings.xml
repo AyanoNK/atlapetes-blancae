@@ -13,4 +13,8 @@
     <string name="neotropical_innovation">Neotropical Innovation</string>
     <string name="finding_your">Encontrando tu</string>
     <string name="blancae_side">Blancae de lado</string>
+    <string name="not_found_prefix">No es un</string>
+    <string name="found_prefix">Encontraste un</string>
+    <string name="percentage_suffix">%1$s %%</string>
+    <string name="loading">...</string>
 </resources>

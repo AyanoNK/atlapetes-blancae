@@ -18,4 +18,6 @@
     <color name="gray_500">#FF9E9E9E</color>
     <color name="gray_700">#FF616161</color>
     <color name="gray_900">#FF212121</color>
+    <color name="red_100">#FFFFE0E0</color>
+    <color name="red_300">#FFFFB3B3</color>
 </resources>

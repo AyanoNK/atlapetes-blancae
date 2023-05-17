@@ -36,6 +36,9 @@
         android:theme="@style/Theme.AtlapetesBlancae"
         tools:targetApi="31">
         <activity
+            android:name=".FeedbackVideoActivity"
+            android:exported="false" />
+        <activity
             android:name=".RecordVideoActivity"
             android:exported="false" />
         <activity

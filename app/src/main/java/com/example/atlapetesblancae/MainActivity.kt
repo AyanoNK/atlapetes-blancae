@@ -12,8 +12,6 @@ import android.widget.Toast
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -44,6 +42,13 @@ class MainActivity : AppCompatActivity() {
         binding.testerButton.setOnClickListener {
             val testerIntent = Intent(this, ReviewVideoActivity::class.java)
             startActivity(testerIntent)
+        }
+
+        binding.testButtonn.setOnClickListener {
+            val feedbackIntent = Intent(this, FeedbackVideoActivity::class.java)
+            feedbackIntent.putExtra("classifierSuccess", true)
+            feedbackIntent.putExtra("classifierPercentage", 1f)
+            startActivity(feedbackIntent)
         }
     }
 
