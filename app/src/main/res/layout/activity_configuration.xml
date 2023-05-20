@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_background"
+    android:contentDescription="@string/title_home"
+    tools:context=".ConfigurationActivity">
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:fontFamily="@font/latoregular"
+        android:text="@string/config"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/framesPerSecondText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_weight="1"
+        android:fontFamily="@font/latoregular"
+        android:gravity="center"
+        android:text="@string/fps"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleText" />
+
+    <ImageButton
+        android:id="@+id/homeButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#00FFFFFF"
+        android:contentDescription="@string/title_dashboard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_home_black_24dp" />
+
+    <SeekBar
+        android:id="@+id/fpsSeekBar"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="263dp"
+        android:layout_height="37dp"
+        android:layout_marginTop="8dp"
+        android:max="5"
+        android:progress="0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fpsText" />
+
+    <TextView
+        android:id="@+id/fpsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:fontFamily="@font/latoregular"
+        android:gravity="center"
+        android:text="@string/default_fps"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/framesPerSecondText" />
+
+    <TextView
+        android:id="@+id/estimateTimeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/latoregular"
+        android:text="@string/estimate_processing_time"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fpsSeekBar" />
+
+    <TextView
+        android:id="@+id/secondsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/latoregular"
+        android:text="@string/seconds"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/estimateTimeText" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

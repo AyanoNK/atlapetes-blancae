@@ -17,4 +17,14 @@
     <string name="found_prefix">Encontraste un</string>
     <string name="percentage_suffix">%1$s %%</string>
     <string name="loading">...</string>
+    <string name="send_video">Envía tu vídeo</string>
+    <string name="email_subject">Video de Montañerito Paisa</string>
+    <string name="email_body">Este es mi video del Montañerito Paisa</string>
+    <string name="config">Configuración</string>
+    <string name="fps">Cuadros por segundo</string>
+    <string name="default_fps">1</string>
+    <string name="decrease">Disminuir</string>
+    <string name="increase">Aumentar</string>
+    <string name="estimate_processing_time">Tiempo estimado de análisis:</string>
+    <string name="seconds">segundos</string>
 </resources>

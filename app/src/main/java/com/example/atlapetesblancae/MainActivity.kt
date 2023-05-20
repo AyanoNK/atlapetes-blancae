@@ -14,6 +14,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("CURRENT FRAMES PER SECOND: ${Constants.FRAMES_PER_SECOND}")
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -49,6 +50,11 @@ class MainActivity : AppCompatActivity() {
             feedbackIntent.putExtra("classifierSuccess", true)
             feedbackIntent.putExtra("classifierPercentage", 1f)
             startActivity(feedbackIntent)
+        }
+
+        binding.configurationButton.setOnClickListener {
+            val configurationIntent = Intent(this, ConfigurationActivity::class.java)
+            startActivity(configurationIntent)
         }
     }
 

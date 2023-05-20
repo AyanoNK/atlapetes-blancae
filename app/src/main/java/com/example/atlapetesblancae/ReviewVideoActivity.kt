@@ -18,7 +18,6 @@ import kotlin.math.ceil
 class ReviewVideoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReviewVideoBinding
-    private var mModule: Module? = null
     private var progressStatus: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {

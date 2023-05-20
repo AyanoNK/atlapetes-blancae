@@ -31,40 +31,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/full" />
 
-    <LinearLayout
-        android:id="@+id/imageLinearLayout"
-        android:layout_width="334dp"
-        android:layout_height="85dp"
-        android:layout_marginBottom="16dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <ImageView
-            android:id="@+id/NeotropicalInnovationImage"
-            android:layout_width="57dp"
-            android:layout_height="53dp"
-            android:contentDescription="@string/neotropical_innovation"
-            app:srcCompat="@drawable/neotropical_innovation" />
-
-        <ImageView
-            android:id="@+id/SistemicImage"
-            android:layout_width="195dp"
-            android:layout_height="52dp"
-            android:contentDescription="@string/sistemic"
-            app:srcCompat="@drawable/sistemic" />
-
-        <ImageView
-            android:id="@+id/HumboldtImage"
-            android:layout_width="51dp"
-            android:layout_height="53dp"
-            android:contentDescription="@string/humboldt"
-            app:srcCompat="@drawable/humboldt" />
-
-    </LinearLayout>
-
     <TextView
         android:id="@+id/findingYourText"
         android:layout_width="wrap_content"
@@ -132,6 +98,52 @@
         android:text="Button"
         tools:layout_editor_absoluteX="157dp"
         tools:layout_editor_absoluteY="422dp" />
+
+    <ImageButton
+        android:id="@+id/configurationButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="#00FFFFFF"
+        android:contentDescription="@string/config"
+        app:layout_constraintBottom_toBottomOf="@+id/imageLinearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imageLinearLayout"
+        app:layout_constraintTop_toTopOf="@+id/imageLinearLayout"
+        app:srcCompat="@android:drawable/btn_star_big_on" />
+
+    <LinearLayout
+        android:id="@+id/imageLinearLayout"
+        android:layout_width="304dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/NeotropicalInnovationImage"
+            android:layout_width="57dp"
+            android:layout_height="50dp"
+            android:contentDescription="@string/neotropical_innovation"
+            app:srcCompat="@drawable/neotropical_innovation" />
+
+        <ImageView
+            android:id="@+id/SistemicImage"
+            android:layout_width="195dp"
+            android:layout_height="50dp"
+            android:contentDescription="@string/sistemic"
+            app:srcCompat="@drawable/sistemic" />
+
+        <ImageView
+            android:id="@+id/HumboldtImage"
+            android:layout_width="51dp"
+            android:layout_height="50dp"
+            android:contentDescription="@string/humboldt"
+            app:srcCompat="@drawable/humboldt" />
+
+    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
