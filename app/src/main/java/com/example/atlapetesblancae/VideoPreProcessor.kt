@@ -1,6 +1,8 @@
 package com.example.atlapetesblancae
 
 import android.content.Context
+import android.graphics.Bitmap
+import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.ceil

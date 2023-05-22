@@ -24,13 +24,14 @@ class FeedbackVideoActivity : AppCompatActivity() {
         classifierSuccess = intent.getBooleanExtra("classifierSuccess", false)
         classifierPercentage = intent.getFloatExtra("classifierPercentage", 0.0f) * 100
         println("classifierSuccess: $classifierSuccess")
+        showTransformedPercentage()
         if (classifierSuccess) changeLayoutToSuccess()
 
         binding.sendVideoButton.setOnClickListener {
 
             val stored1080pVideo = resources.openRawResource(R.raw.test2)
             // model expects video to be loaded
-            val mModule = LiteModuleLoader.load(assetFilePath(this, "model.ptl"))
+            val mModule = LiteModuleLoader.load(assetFilePath(this, "modell.ptl"))
             val retriever = MediaMetadataRetriever()
 
             // prepare InputStream to be used in retriever.setDataSource
@@ -61,7 +62,10 @@ class FeedbackVideoActivity : AppCompatActivity() {
                 }
             }
         }
+    }
 
+    override fun onBackPressed() {
+        returnHome(this)
     }
 
     private fun changeLayoutToSuccess() {
@@ -69,6 +73,10 @@ class FeedbackVideoActivity : AppCompatActivity() {
         binding.titleText.text = resources.getString(R.string.found_prefix)
         binding.birdText.setTextAppearance(androidx.appcompat.R.style.TextAppearance_AppCompat_Display1)
         binding.birdText.setTextColor(resources.getColor(R.color.black, null))
+        binding.sendVideoButton.visibility = android.view.View.VISIBLE
+    }
+
+    private fun showTransformedPercentage() {
         val floatFormat = "%.2f"
         val formattedPercentage = floatFormat.format(classifierPercentage)
         binding.percentageText.text = String.format(resources.getString(R.string.percentage_suffix), formattedPercentage)

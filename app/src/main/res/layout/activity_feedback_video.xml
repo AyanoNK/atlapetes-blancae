@@ -52,6 +52,7 @@
         android:fontFamily="@font/latoregular"
         android:text="@string/send_video"
         android:textStyle="bold"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

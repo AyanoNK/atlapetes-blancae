@@ -63,6 +63,10 @@ class MainActivity : AppCompatActivity() {
     ) {
         if (requestCode == Constants.REQUEST_CODE_PERMISSIONS) {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+            binding.btnTakeRecording.apply {
+                isEnabled = true
+                text = R.string.start_capture.toString()
+            }
         } else {
             Toast.makeText(
                 this, "Permisos no permitidos. Revise sus ajustes.", Toast.LENGTH_SHORT
