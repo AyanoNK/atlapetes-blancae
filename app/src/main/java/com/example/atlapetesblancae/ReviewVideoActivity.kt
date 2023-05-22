@@ -1,6 +1,6 @@
 package com.example.atlapetesblancae
 
-import android.content.Context
+import android.content.Intent
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -9,16 +9,20 @@ import android.net.Uri
 import com.example.atlapetesblancae.databinding.ActivityReviewVideoBinding
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
-import org.pytorch.Module
 import org.pytorch.Tensor
 import org.pytorch.torchvision.TensorImageUtils
 import java.io.FileOutputStream
 import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 class ReviewVideoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReviewVideoBinding
     private var progressStatus: Int = 0
+    private val predictions = mutableListOf<Float?>()
+    private val analyzeThread = Thread(Runnable {
+        analyzeVideo()
+    })
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,15 +36,16 @@ class ReviewVideoActivity : AppCompatActivity() {
         if (videoUri != null) {
             startVideoPreview(videoUri)
         }
-        Thread(Runnable {
-            test()
-        }).start()
+        analyzeThread.start()
     }
 
-    private fun test() {
+    override fun onBackPressed() {
+        // disable back button
+    }
+    private fun analyzeVideo() {
         val stored1080pVideo = resources.openRawResource(R.raw.test2)
         // model expects video to be loaded
-        val mModule = LiteModuleLoader.load(this.assetFilePath(this, "model.ptl"))
+        val mModule = LiteModuleLoader.load(assetFilePath(this, "modell.ptl"))
         val retriever = MediaMetadataRetriever()
 
         // prepare InputStream to be used in retriever.setDataSource
@@ -57,53 +62,33 @@ class ReviewVideoActivity : AppCompatActivity() {
         val videoLength =
             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
         val frameRate = 1000.toLong()
-        // create empty decimal array of variable size to store max values
 
-        val predictions = mutableListOf<Float>()
         val frameNumber = videoLength / frameRate
         binding.analyzingProgressBar.max = ceil(frameNumber.toDouble()).toInt()
 
-        for (i in 0 until videoLength step frameRate) {
+        for (i in 0 until videoLength * 1000 step frameRate * 1000) {
             println(i)
             val bitmap = retriever.getFrameAtTime(i, MediaMetadataRetriever.OPTION_CLOSEST)
+            println("bitmap: ${bitmap!!.javaClass.kotlin.qualifiedName}")
             val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
                 bitmap,
                 TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
                 TensorImageUtils.TORCHVISION_NORM_STD_RGB
             )
-            val outputTensor = mModule.forward(IValue.from(inputTensor)).toTuple()
-            for (tensor in outputTensor) {
-                val prediction = getMostAccuratePrediction(tensor.toTensor())
-                if (prediction != null) {
-                    predictions.add(prediction)
-                    progressStatus += 1
-                    binding.analyzingProgressBar.progress = progressStatus
-                }
-            }
+            println("inputTensor: ${mModule.forward(IValue.from(inputTensor)).javaClass.kotlin.qualifiedName}")
+            val prediction = mModule.forward(IValue.from(inputTensor)).toTensor()
+            val scores = getMostAccuratePrediction(prediction)
+            predictions.add(scores)
+            progressStatus += 1
+            binding.analyzingProgressBar.progress = progressStatus
         }
 
         for (i in predictions.indices) {
             println("Prediction for frame $i: ${predictions[i]}")
         }
+        startFeedbackVideoActivity()
     }
 
-    private fun assetFilePath(context: Context, assetName: String?): String? {
-        val file = File(context.filesDir, assetName)
-        if (file.exists() && file.length() > 0) {
-            return file.absolutePath
-        }
-        context.assets.open(assetName!!).use { `is` ->
-            FileOutputStream(file).use { os ->
-                val buffer = ByteArray(4 * 1024)
-                var read: Int
-                while (`is`.read(buffer).also { read = it } != -1) {
-                    os.write(buffer, 0, read)
-                }
-                os.flush()
-            }
-            return file.absolutePath
-        }
-    }
 
     private fun getMostAccuratePrediction(tensor: Tensor): Float? {
         val tensorData = tensor.dataAsFloatArray
@@ -118,5 +103,19 @@ class ReviewVideoActivity : AppCompatActivity() {
         binding.recordedVideoView.setOnCompletionListener {
             binding.recordedVideoView.start()
         }
+    }
+
+    private fun startFeedbackVideoActivity() {
+        val intent = Intent(this, FeedbackVideoActivity::class.java)
+
+        // if any of the predictions are round to 0
+        intent.putExtra("classifierSuccess", predictions.any { it?.roundToInt() == 0 })
+
+        // times a rounded prediction is 0
+        val roundedPredictions = predictions.map { it?.roundToInt() }
+        val percentageBetweenRoundedPredictionsAndFrameCount =
+            roundedPredictions.count { it == 0 } / predictions.size
+        intent.putExtra("classifierSuccessCount", percentageBetweenRoundedPredictionsAndFrameCount)
+        startActivity(intent)
     }
 }
