@@ -30,29 +30,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/scientificNameText" />
 
-    <ImageView
-        android:id="@+id/blancaeSideImage"
-        android:layout_width="93dp"
-        android:layout_height="111dp"
-        android:layout_marginTop="8dp"
-        android:contentDescription="@string/blancae_side"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/findingYourText"
-        app:srcCompat="@drawable/blancae_side" />
-
     <TextView
         android:id="@+id/scientificNameText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/scientific_name"
         android:fontFamily="@font/latoregular"
-        android:textColor="@color/gray_700"
+        android:text="@string/scientific_name"
+        android:textColor="@color/gray_900"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/blancaeSideImage" />
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <ProgressBar
         android:id="@+id/analyzingProgressBar"
@@ -64,9 +52,31 @@
         android:progress="1"
         android:progressBackgroundTint="@color/blue_300"
         android:progressTint="@color/green_700"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/blancaeImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recordedVideoView" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/latoregular"
+        android:text="@string/title_home"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/findingYourText" />
+
+    <ImageView
+        android:id="@+id/blancaeImage"
+        android:layout_width="150dp"
+        android:layout_height="136dp"
+        android:contentDescription="@string/blancae_side"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/blancae_side" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

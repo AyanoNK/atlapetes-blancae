@@ -89,13 +89,12 @@ class RecordVideoActivity : AppCompatActivity() {
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
             put(
                 MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES
-            ) // or Movies/CameraX-Video
+            )
         }
 
         val mediaStoreOutputOptions = MediaStoreOutputOptions.Builder(
             contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         ).setContentValues(contentValues).build()
-
         recording = videoCapture.output.prepareRecording(
             this, mediaStoreOutputOptions,
         ).apply {
@@ -109,35 +108,16 @@ class RecordVideoActivity : AppCompatActivity() {
             when (recordEvent) {
                 is VideoRecordEvent.Start -> {
                     binding.btnTakeRecording.apply {
-                        text = "Parar"
+                        text = "Parar (${Constants.DEFAULT_VIDEO_DURATION})"
                         isEnabled = true
                     }
-                    // Schedule a stop recording task after 10 seconds
+                    startVideoCounter()
                     Handler(Looper.getMainLooper()).postDelayed({
-                        curRecording?.stop()
-                        curRecording = null
-                    }, 10000L)
+                        binding.btnTakeRecording.performClick()
+                    }, Constants.DEFAULT_VIDEO_DURATION * 1000L)
                 }
-
                 is VideoRecordEvent.Finalize -> {
-                    if (!recordEvent.hasError()) {
-                        val msg = "Video saved" + "${recordEvent.outputResults.outputUri}"
-                        Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                        Log.d(Constants.TAG, msg)
-                        val intent = Intent(this, ReviewVideoActivity::class.java)
-                        intent.putExtra("videoUri", recordEvent.outputResults.outputUri.toString())
-                        startActivity(intent)
-                    } else {
-                        recording?.close()
-                        recording = null
-                        Log.e(
-                            Constants.TAG, "Video recording failed: " + "${recordEvent.error}"
-                        )
-                    }
-                    binding.btnTakeRecording.apply {
-                        text = getString(R.string.start_capture)
-                        isEnabled = true
-                    }
+                    finalizeRecordingVideoSuccess(recordEvent)
                 }
             }
         }
@@ -213,5 +193,35 @@ class RecordVideoActivity : AppCompatActivity() {
         cameraExecutor.shutdown()
     }
 
+    private fun finalizeRecordingVideoSuccess(recordEvent: VideoRecordEvent.Finalize) {
+        if (!recordEvent.hasError()) {
+            val msg = "Video saved" + "${recordEvent.outputResults.outputUri}"
+            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+            Log.d(Constants.TAG, msg)
+            val intent = Intent(this, ReviewVideoActivity::class.java)
+            intent.putExtra("videoUri", recordEvent.outputResults.outputUri.toString())
+            startActivity(intent)
+        } else {
+            recording?.close()
+            recording = null
+            Log.e(
+                Constants.TAG, "Video recording failed: " + "${recordEvent.error}"
+            )
+        }
+    }
+
+    private fun startVideoCounter() {
+        var count = Constants.DEFAULT_VIDEO_DURATION
+        val handler = Handler(Looper.getMainLooper())
+        handler.post(object : Runnable {
+            override fun run() {
+                binding.btnTakeRecording.text = "Parar ($count)"
+                count--
+                if (count >= 0) {
+                    handler.postDelayed(this, 1000)
+                }
+            }
+        })
+    }
 
 }

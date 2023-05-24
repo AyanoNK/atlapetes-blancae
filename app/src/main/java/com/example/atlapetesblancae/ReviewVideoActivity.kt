@@ -11,7 +11,6 @@ import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.Tensor
 import org.pytorch.torchvision.TensorImageUtils
-import java.io.FileOutputStream
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -36,6 +35,9 @@ class ReviewVideoActivity : AppCompatActivity() {
         if (videoUri != null) {
             startVideoPreview(videoUri)
         }
+        if (videoUri == null) {
+            finish()
+        }
         analyzeThread.start()
     }
 
@@ -43,22 +45,17 @@ class ReviewVideoActivity : AppCompatActivity() {
         // disable back button
     }
     private fun analyzeVideo() {
-        val stored1080pVideo = resources.openRawResource(R.raw.test2)
-        // model expects video to be loaded
-        val mModule = LiteModuleLoader.load(assetFilePath(this, "modell.ptl"))
+        val modelModule = LiteModuleLoader.load(assetFilePath(this, "modell.ptl"))
+        // load the video from the given videoUri and analyze it
+        val uriVideo = Uri.parse(intent.getStringExtra("videoUri"))
+
         val retriever = MediaMetadataRetriever()
+        val videoAbsoluteUri = retrieveVideo(uriVideo, this)
+        retriever.setDataSource(this, videoAbsoluteUri)
 
         // prepare InputStream to be used in retriever.setDataSource
         val tempFile = File.createTempFile("temp", "mp4")
         tempFile.deleteOnExit()
-
-        stored1080pVideo.use { input ->
-            FileOutputStream(tempFile).use { output ->
-                input.copyTo(output)
-            }
-        }
-        retriever.setDataSource(tempFile.absolutePath)
-
         val videoLength =
             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
         val frameRate = 1000.toLong()
@@ -69,14 +66,12 @@ class ReviewVideoActivity : AppCompatActivity() {
         for (i in 0 until videoLength * 1000 step frameRate * 1000) {
             println(i)
             val bitmap = retriever.getFrameAtTime(i, MediaMetadataRetriever.OPTION_CLOSEST)
-            println("bitmap: ${bitmap!!.javaClass.kotlin.qualifiedName}")
             val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
                 bitmap,
                 TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
                 TensorImageUtils.TORCHVISION_NORM_STD_RGB
             )
-            println("inputTensor: ${mModule.forward(IValue.from(inputTensor)).javaClass.kotlin.qualifiedName}")
-            val prediction = mModule.forward(IValue.from(inputTensor)).toTensor()
+            val prediction = modelModule.forward(IValue.from(inputTensor)).toTensor()
             val scores = getMostAccuratePrediction(prediction)
             predictions.add(scores)
             progressStatus += 1
@@ -96,7 +91,6 @@ class ReviewVideoActivity : AppCompatActivity() {
     }
 
     private fun startVideoPreview(videoUri: String) {
-        println("I SHOULD NOT ARRIVE HERE")
         binding.recordedVideoView.setVideoURI(Uri.parse(videoUri))
         binding.recordedVideoView.start()
         // loop video

@@ -1,7 +1,14 @@
 package com.example.atlapetesblancae
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
@@ -23,6 +30,21 @@ fun assetFilePath(context: Context, assetName: String?): String? {
         }
         return file.absolutePath
     }
+}
+
+fun retrieveVideo(videoUri: Uri, activity: AppCompatActivity): Uri {
+    if (Constants.VIDEO_DEBUGGER) {
+        val stored1080pVideo = activity.resources.openRawResource(R.raw.test2)
+        val tempFile = File.createTempFile("temp", "mp4")
+        tempFile.deleteOnExit()
+        stored1080pVideo.use { input ->
+            FileOutputStream(tempFile).use { output ->
+                input.copyTo(output)
+            }
+        }
+        return Uri.parse(tempFile.absolutePath)
+    }
+    return videoUri
 }
 
 fun transformSecondsIntoFrameRate(seconds: Int): Int {

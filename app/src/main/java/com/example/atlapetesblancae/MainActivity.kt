@@ -40,18 +40,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        binding.testerButton.setOnClickListener {
-            val testerIntent = Intent(this, ReviewVideoActivity::class.java)
-            startActivity(testerIntent)
-        }
-
-        binding.testButtonn.setOnClickListener {
-            val feedbackIntent = Intent(this, FeedbackVideoActivity::class.java)
-            feedbackIntent.putExtra("classifierSuccess", true)
-            feedbackIntent.putExtra("classifierPercentage", 1f)
-            startActivity(feedbackIntent)
-        }
-
         binding.configurationButton.setOnClickListener {
             val configurationIntent = Intent(this, ConfigurationActivity::class.java)
             startActivity(configurationIntent)
