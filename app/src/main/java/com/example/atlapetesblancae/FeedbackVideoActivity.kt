@@ -31,7 +31,6 @@ class FeedbackVideoActivity : AppCompatActivity() {
 
             val stored1080pVideo = resources.openRawResource(R.raw.test2)
             // model expects video to be loaded
-            val mModule = LiteModuleLoader.load(assetFilePath(this, "modell.ptl"))
             val retriever = MediaMetadataRetriever()
 
             // prepare InputStream to be used in retriever.setDataSource

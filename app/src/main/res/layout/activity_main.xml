@@ -85,13 +85,13 @@
         android:id="@+id/configurationButton"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:background="#00FFFFFF"
+        android:background="@color/marine_700"
         android:contentDescription="@string/config"
         app:layout_constraintBottom_toBottomOf="@+id/imageLinearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/imageLinearLayout"
         app:layout_constraintTop_toTopOf="@+id/imageLinearLayout"
-        app:srcCompat="@android:drawable/btn_star_big_on" />
+        app:srcCompat="@android:drawable/stat_notify_sdcard_prepare" />
 
     <LinearLayout
         android:id="@+id/imageLinearLayout"
